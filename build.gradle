@@ -1,0 +1,187 @@
+buildscript {
+    ext {
+        springBootVersion = '2.5.6'
+    }
+
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0")
+    }
+}
+
+plugins {
+    id 'org.springframework.boot' version '2.5.1'
+    id 'java'
+    id "org.sonarqube" version "3.0"
+    id "io.spring.dependency-management" version "1.0.11.RELEASE"
+    // id "nebula.lint" version "16.9.0"
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'jacoco'
+apply plugin: 'org.sonarqube'
+// apply plugin :"nebula.lint"
+
+group = 'com.demo'
+version = '0.0.1'
+sourceCompatibility = '11'
+
+repositories {
+//    maven {
+//        url "${readonlyRepoURL}"
+//    }
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2020.0.3"
+    }
+}
+dependencies {
+    implementation "io.github.lognet:grpc-spring-boot-starter"
+    implementation("org.springframework.cloud:spring-cloud-starter-sleuth")
+    implementation("io.zipkin.brave:brave-instrumentation-grpc")
+    implementation ("io.zipkin.brave:brave-instrumentation-messaging")
+    compile "net.logstash.logback:logstash-logback-encoder:6.4"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+}
+dependencies {
+
+//    compile group: 'com.flipkart.zjsonpatch', name: 'zjsonpatch', version: '0.4.9'
+
+
+    compile group: 'com.google.guava', name: 'guava', version: '29.0-jre'
+
+    implementation 'org.springframework:spring-web:5.3.12'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation "org.springframework.kafka:spring-kafka"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    implementation "org.flywaydb:flyway-core"
+    implementation "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    runtimeOnly "org.postgresql:postgresql"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+//    testImplementation "org.springframework.security:spring-security-test"
+    testCompile group: 'io.grpc', name: 'grpc-testing', version: "${grpcVersion}"
+    testCompile 'org.springframework.boot:spring-boot-devtools'
+//    testImplementation "org.testcontainers:kafka:${testContainersVersion}"
+    testImplementation "org.testcontainers:postgresql:${testContainersVersion}"
+    testImplementation "org.testcontainers:testcontainers:${testContainersVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testImplementation 'org.awaitility:awaitility:4.0.1'
+
+    implementation "io.grpc:grpc-netty-shaded:${grpcVersion}"
+    implementation "io.grpc:grpc-protobuf:${grpcVersion}"
+    implementation "io.grpc:grpc-stub:${grpcVersion}"
+    implementation "io.grpc:grpc-services:${grpcVersion}"
+    implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"
+    implementation "io.github.lognet:grpc-spring-boot-starter:${springBootStarterVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind"
+    implementation "com.fasterxml.jackson.core:jackson-core"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    compile group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.9.12'
+    implementation "ch.qos.logback.contrib:logback-json-classic:${logbackJsonVersion}"
+    implementation "ch.qos.logback.contrib:logback-jackson:${logbackJsonVersion}"
+    compile group: 'org.apache.poi', name: 'poi', version: '4.1.2'
+//    compile group: 'org.apache.poi', name: 'poi-ooxml', version: '4.1.2'
+    compile group: 'com.oracle.oci.sdk', name: 'oci-java-sdk-objectstorage', version: '2.7.2'
+    implementation group: 'net.minidev', name: 'json-smart', version: '2.4.7'
+    implementation group: 'org.apache.commons', name: 'commons-compress', version: '1.21'
+    implementation 'org.jetbrains:annotations:22.0.0'
+//    implementation group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '3.0.3'
+//    implementation group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '3.0.3'
+//    implementation group: 'org.glassfish.jersey.core', name: 'jersey-common', version: '3.0.3'
+//    implementation group: 'org.glassfish.jersey.ext', name: 'jersey-entity-filtering', version: '3.0.3'
+//    implementation group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '3.0.3'
+
+
+}
+
+jar {
+    enabled = false
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs "src/main/java"
+        }
+    }
+
+    test {
+        java {
+            srcDirs "src/test/java"
+        }
+
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.2"
+    reportsDir = file("$buildDir/customJacocoReportDir")
+}
+
+test.finalizedBy(project.tasks.jacocoTestReport)
+
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.1
+            }
+
+        }
+
+        rule {
+            enabled = false
+            element = 'CLASS'
+            includes = ['org.gradle.*']
+
+            limit {
+                counter = 'LINE'
+                value = 'TOTALCOUNT'
+                maximum = 0.3
+            }
+
+        }
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.enabled = true
+    }
+
+    afterEvaluate {
+        getClassDirectories().setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ["${sonarExclusions}"]
+            )
+        }))
+
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.host.url", "${sonarHostUrl}"
+        property "sonar.exclusions", "${sonarExclusions}"
+        property "sonar.sources","${sonarSourceLocation}"
+        property "sonar.java.binaries","${sonarJavaBinaries}"
+        property "sonar.tests","${sonarTestLocation}"
+        property "sonar.projectName","${sonarProjectName}"
+        property "sonar.login", "${sonarToken}"
+    }
+}
+
+// gradleLint {
+//     rules=['unused-dependency']
+// }
