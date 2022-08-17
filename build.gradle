@@ -87,6 +87,9 @@ dependencies {
     compile group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.9.12'
     implementation "ch.qos.logback.contrib:logback-json-classic:${logbackJsonVersion}"
     implementation "ch.qos.logback.contrib:logback-jackson:${logbackJsonVersion}"
+    implementation 'ch.qos.logback:logback-classic:1.2.11'
+    implementation 'ch.qos.logback:logback-core:1.2.11'
+
     compile group: 'org.apache.poi', name: 'poi', version: '4.1.2'
 //    compile group: 'org.apache.poi', name: 'poi-ooxml', version: '4.1.2'
     compile group: 'com.oracle.oci.sdk', name: 'oci-java-sdk-objectstorage', version: '2.7.2'
